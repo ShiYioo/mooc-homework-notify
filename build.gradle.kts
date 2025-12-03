@@ -33,6 +33,18 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // HTTP客户端
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // 邮件支持
+    implementation("org.springframework.boot:spring-boot-starter-mail")
+
+    // JSON处理
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    // 配置属性注解处理器
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 }
 
 kotlin {

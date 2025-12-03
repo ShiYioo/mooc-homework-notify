@@ -1,3 +1,55 @@
 spring:
   application:
-   name: mooc-work-nodify
+    name: mooc-work-nodify
+
+  # 邮件配置
+  mail:
+    host: smtp.example.com          # 邮件服务器地址，如：smtp.qq.com, smtp.163.com, smtp.gmail.com
+    port: 587                        # 端口号，通常587或465
+    username: your-email@example.com # 发件人邮箱
+    password: your-email-password    # 邮箱授权码（不是登录密码）
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+    default-encoding: UTF-8
+
+# MOOC平台配置
+mooc:
+  # Cookie信息（从浏览器开发者工具中获取，登录MOOC后复制完整Cookie）
+  cookie: "NTESSTUDYSI=your_csrf_key; EDUWEBDEVICE=your_device_id; STUDY_SESS=your_session; ..."
+
+  # CSRF密钥（从Cookie中的NTESSTUDYSI字段获取，或从API请求URL参数中获取）
+  csrf-key: "your_csrf_key"
+
+  # 课程学期ID列表（支持监控多个课程，从课程页面URL或API中获取）
+  term-ids:
+    - "1475440469"  # 示例课程ID 1
+    # - "1234567890"  # 可以添加多个课程
+
+  # MOOC API基础URL（通常不需要修改）
+  api-base-url: "https://www.icourse163.org/web/j/courseBean.getLastLearnedMocTermDto.rpc"
+
+  # 作业提醒时间点（距离截止时间的小时数）
+  reminder-hours:
+    - 24   # 截止前24小时提醒
+    - 1    # 截止前1小时提醒
+
+# 邮件通知配置
+notification:
+  email:
+    enabled: true  # 是否启用邮件通知
+    recipients:    # 收件人邮箱列表
+      - "recipient1@example.com"
+      # - "recipient2@example.com"  # 可以添加多个收件人
+    subject-prefix: "[MOOC作业提醒]"  # 邮件主题前缀
+
+# 日志配置
+logging:
+  level:
+    org.shiyi.moocworknodify: INFO
+    org.springframework.mail: DEBUG
+
