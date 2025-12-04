@@ -15,16 +15,16 @@ services:
       # 挂载JAR包（必需）
       - ./build/libs/mooc-work-nodify-lastest.jar:/app/app.jar:ro
 
-      # 挂载配置文件（必需）
-      - ./src/main/resources/application.yaml:/app/config/application.yaml:ro
+      # 挂载配置文件（必需，与JAR包同目录）
+      - ./src/main/resources/application.yaml:/app/application.yaml:ro
 
       # 日志持久化
       - ./logs:/app/logs
 
     # 环境变量配置
     environment:
-      # 指定配置文件位置
-      - SPRING_CONFIG_LOCATION=file:/app/config/application.yaml
+      # 指定配置文件位置（与JAR包同目录）
+      - SPRING_CONFIG_LOCATION=file:/app/application.yaml
 
       # 时区配置
       - TZ=Asia/Shanghai
