@@ -57,6 +57,11 @@ mooc:
     # - 72   # 可以添加更多提醒时间点，如截止前3天
     # - 2    # 截止前2小时
 
+  # 管理员邮箱（用于接收系统通知，如Cookie过期提醒）
+  # 当系统检测到Cookie过期时，会发送邮件通知管理员更换Cookie
+  # 此通知对于每次Cookie过期只会发送一次，避免重复打扰
+  admin-email: "admin@example.com"
+
 # 邮件通知配置
 notification:
   email:

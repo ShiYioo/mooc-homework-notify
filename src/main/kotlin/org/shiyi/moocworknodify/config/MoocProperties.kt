@@ -38,7 +38,12 @@ data class MoocProperties(
      * 作业提醒时间点配置（距离截止时间的小时数）
      * 默认：24小时和1小时
      */
-    var reminderHours: List<Int> = listOf(24, 1)
+    var reminderHours: List<Int> = listOf(24, 1),
+
+    /**
+     * 管理员邮箱，用于接收系统通知（如Cookie过期）
+     */
+    var adminEmail: String = ""
 )
 
 

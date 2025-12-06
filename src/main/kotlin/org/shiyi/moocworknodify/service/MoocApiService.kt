@@ -19,7 +19,9 @@ import java.util.concurrent.TimeUnit
 @Service
 class MoocApiService(
     private val moocProperties: MoocProperties,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val emailNotificationService: EmailNotificationService,
+    private val cookieExpirationService: CookieExpirationService
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -71,9 +73,24 @@ class MoocApiService(
                     return null
                 }
 
+                // 检测Cookie是否过期：code=0但result=null表示Cookie认证失败
+                if (moocResponse.result == null) {
+                    logger.error("检测到Cookie已过期: code={}, result=null, termId={}", moocResponse.code, termId)
+
+                    // 只发送一次通知
+                    if (cookieExpirationService.shouldSendNotification()) {
+                        logger.warn("Cookie已过期，正在发送通知给管理员...")
+                        emailNotificationService.sendCookieExpirationNotification(moocProperties.adminEmail)
+                    } else {
+                        logger.info("Cookie过期通知已发送过，本次不再发送")
+                    }
+
+                    return null
+                }
+
                 logger.info("成功获取课程信息: termId={}, courseName={}",
                     termId,
-                    moocResponse.result?.mocTermDto?.courseName
+                    moocResponse.result.mocTermDto?.courseName
                 )
 
                 return moocResponse
