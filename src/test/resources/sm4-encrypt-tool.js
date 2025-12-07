@@ -183,32 +183,32 @@ if (typeof require === 'undefined') {
 
     // 示例1: 加密任意JSON
     console.log("【示例1】加密JSON对象:");
-    var testData = {"un":"test@163.com","pkid":"cjJVGQM","pd":"imooc","rtid":generateRtid};
+    var testData = {"un":"test@163.com","pkid":"cjJVGQM","pd":"imooc","rtid":generateRtid()};
     var encrypted = sm4Encrypt(JSON.stringify(testData), MOOC_KEY);
     console.log("原始数据:", JSON.stringify(testData));
     console.log("加密结果:", encrypted);
     console.log();
 
     // 示例2: 获取票据
-    // console.log("【示例2】生成获取票据的encParams:");
-    // var email = "test@163.com";
-    // var ticketEnc = getTicketEncParams(email);
-    // console.log("邮箱:", email);
-    // console.log("encParams:", ticketEnc);
-    // console.log();
-    // console.log("请求示例:");
-    // console.log("POST https://reg.icourse163.org/dl/zj/mail/gt");
-    // console.log('Body: {"encParams":"' + ticketEnc + '"}');
-    // console.log();
-    //
-    // // 示例3: 登录
-    // console.log("【示例3】生成登录的encParams:");
-    // var loginEnc = loginEncParams("user@163.com", "encryptedPassword123");
-    // console.log("encParams:", loginEnc);
-    // console.log();
-    //
-    // console.log("提示: 在Node.js中使用:");
-    // console.log("const sm4 = require('./sm4-encrypt-tool.js');");
-    // console.log("const encParams = sm4.getTicketEncParams('your@email.com');");
+    console.log("【示例2】生成获取票据的encParams:");
+    var email = "test@163.com";
+    var ticketEnc = getTicketEncParams(email);
+    console.log("邮箱:", email);
+    console.log("encParams:", ticketEnc);
+    console.log();
+    console.log("请求示例:");
+    console.log("POST https://reg.icourse163.org/dl/zj/mail/gt");
+    console.log('Body: {"encParams":"' + ticketEnc + '"}');
+    console.log();
+
+    // 示例3: 登录
+    console.log("【示例3】生成登录的encParams:");
+    var loginEnc = loginEncParams("user@163.com", "encryptedPassword123");
+    console.log("encParams:", loginEnc);
+    console.log();
+
+    console.log("提示: 在Node.js中使用:");
+    console.log("const sm4 = require('./sm4-encrypt-tool.js');");
+    console.log("const encParams = sm4.getTicketEncParams('your@email.com');");
 }
 
