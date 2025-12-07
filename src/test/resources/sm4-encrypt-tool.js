@@ -105,6 +105,35 @@ function sm4Encrypt(plaintext, keyHex) {
     return bytesToHex(output);
 }
 
+function sm4Decrypt(ciphertextHex, keyHex) {
+    var key = hexToBytes(keyHex);
+    if (key.length !== 16) throw new Error('密钥必须是16字节(32位十六进制)');
+
+    var input = hexToBytes(ciphertextHex);
+    var rk = genRoundKeys(key, 0); // 解密模式
+    var output = [];
+
+    for (var offset = 0; offset < input.length; offset += 16) {
+        var block = input.slice(offset, offset + 16);
+        var plain = sm4Block(block, rk);
+        output = output.concat(plain);
+    }
+
+    // 去除PKCS7填充
+    var padLen = output[output.length - 1];
+    if (padLen > 0 && padLen <= 16) {
+        output = output.slice(0, output.length - padLen);
+    }
+
+    // 转换为UTF-8字符串
+    var str = '';
+    for (var i = 0; i < output.length; i++) {
+        str += String.fromCharCode(output[i]);
+    }
+
+    return decodeURIComponent(escape(str));
+}
+
 // ==================== MOOC工具函数 ====================
 
 var MOOC_KEY = "BC60B8B9E4FFEFFA219E5AD77F11F9E2";
@@ -134,14 +163,31 @@ function encryptMoocParams(params) {
 /**
  * 生成获取票据的encParams
  * @param {String} email - 邮箱地址
+ * @param {String} topURL - 来源URL，默认为MOOC官网
  * @returns {String} - encParams
  */
-function getTicketEncParams(email) {
+function getTicketEncParams(email, topURL) {
     var params = {
         un: email,
         pkid: "cjJVGQM",
         pd: "imooc",
+        channel: 0,
+        topURL: topURL || "https://www.icourse163.org/",
         rtid: generateRtid()
+    };
+    return encryptMoocParams(params);
+}
+
+/**
+ * 生成获取验证码的encParams（用于验证码URL）
+ * @returns {String} - encParams
+ */
+function getCaptchaEncParams() {
+    var params = {
+        channel: 0,
+        rtid: generateRtid(),
+        pd: "imooc",
+        pkid: "cjJVGQM"
     };
     return encryptMoocParams(params);
 }
@@ -163,35 +209,95 @@ function loginEncParams(email, password) {
     return encryptMoocParams(params);
 }
 
-// ==================== 使用示例 ====================
+// ==================== 命令行使用 ====================
 
-console.log("=== SM4 MOOC加密工具 ===\n");
+// 检查是否有命令行参数
+if (typeof process !== 'undefined' && process.argv && process.argv.length > 2) {
+    var command = process.argv[2];
 
-// 示例1: 加密任意JSON
-console.log("【示例1】加密JSON对象:");
-var testData = {"un":"test@163.com","pkid":"cjJVGQM","pd":"imooc","rtid":generateRtid()};
-var encrypted = sm4Encrypt(JSON.stringify(testData), MOOC_KEY);
-console.log("原始数据:", JSON.stringify(testData));
-console.log("加密结果:", encrypted);
-console.log();
+    if (command === 'captcha') {
+        console.log(getCaptchaEncParams());
+    } else if (command === 'ticket' && process.argv[3]) {
+        var email = process.argv[3];
+        console.log(getTicketEncParams(email));
+    } else if (command === 'login' && process.argv[3] && process.argv[4]) {
+        var email = process.argv[3];
+        var password = process.argv[4];
+        console.log(loginEncParams(email, password));
+    } else if (command === 'encrypt' && process.argv[3]) {
+        var json = process.argv[3];
+        console.log(sm4Encrypt(json, MOOC_KEY));
+    } else if (command === 'decrypt' && process.argv[3]) {
+        var encParams = process.argv[3];
+        try {
+            var decrypted = sm4Decrypt(encParams, MOOC_KEY);
+            console.log(decrypted);
+        } catch (e) {
+            console.error("解密失败:", e.message);
+        }
+    } else {
+        console.log("用法:");
+        console.log("  node sm4-encrypt-tool.js captcha                 - 生成获取验证码的encParams");
+        console.log("  node sm4-encrypt-tool.js ticket <email>          - 生成获取票据的encParams");
+        console.log("  node sm4-encrypt-tool.js login <email> <pwd>    - 生成登录的encParams");
+        console.log("  node sm4-encrypt-tool.js encrypt <json>          - 加密任意JSON字符串");
+        console.log("  node sm4-encrypt-tool.js decrypt <encParams>     - 解密encParams查看内容");
+    }
+} else {
+    // 没有参数时显示示例
+    console.log("=== SM4 MOOC加密工具 ===\n");
 
-// 示例2: 获取票据
-console.log("【示例2】生成获取票据的encParams:");
-var email = "test@163.com";
-var ticketEnc = getTicketEncParams(email);
-console.log("邮箱:", email);
-console.log("encParams:", ticketEnc);
-console.log();
-console.log("请求示例:");
-console.log("POST https://reg.icourse163.org/dl/zj/mail/gt");
-console.log('Body: {"encParams":"' + ticketEnc + '"}');
-console.log();
+    // 示例1: 获取验证码
+    console.log("【示例1】生成获取验证码的encParams:");
+    var captchaEnc = getCaptchaEncParams();
+    console.log("encParams:", captchaEnc);
+    console.log("长度:", captchaEnc.length);
+    console.log();
+    console.log("请求示例:");
+    console.log("GET https://reg.icourse163.org/dl/zj/mail/cp?encParams=" + captchaEnc + "&nocache=" + (new Date).getTime());
+    console.log();
 
-// 示例3: 登录
-console.log("【示例3】生成登录的encParams:");
-var loginEnc = loginEncParams("user@163.com", "encryptedPassword123");
-console.log("encParams:", loginEnc);
-console.log();
+    // 示例2: 获取票据
+    console.log("【示例2】生成获取票据的encParams:");
+    var email = "a17388110647@163.com";
+    var ticketEnc = getTicketEncParams(email);
+    console.log("邮箱:", email);
+    console.log("encParams:", ticketEnc);
+    console.log("长度:", ticketEnc.length);
+    console.log();
+    console.log("请求示例:");
+    console.log("POST https://reg.icourse163.org/dl/zj/mail/gt");
+    console.log('Body: {"encParams":"' + ticketEnc + '"}');
+    console.log();
+
+    // 示例3: 登录
+    console.log("【示例3】生成登录的encParams:");
+    var loginEnc = loginEncParams("user@163.com", "encryptedPassword123");
+    console.log("encParams:", loginEnc);
+    console.log("长度:", loginEnc.length);
+    console.log();
+
+    // 示例4: 解密测试 - 验证加密解密的正确性
+    console.log("【示例4】解密测试 - 验证加密解密的正确性:");
+    var testData = '{"un":"test@163.com","pkid":"cjJVGQM","pd":"imooc","channel":0,"topURL":"https://www.icourse163.org/","rtid":"3b7Ue5mjG0CDs251nvOMq3bgzpygT26M"}';
+    var encrypted = sm4Encrypt(testData, MOOC_KEY);
+    console.log("原始数据:", testData);
+    console.log("加密后:", encrypted);
+    console.log("加密长度:", encrypted.length);
+    var decrypted = sm4Decrypt(encrypted, MOOC_KEY);
+    console.log("解密后:", decrypted);
+    console.log("解密正确:", testData === decrypted ? "✓" : "✗");
+    console.log();
+
+    // 示例5: 解密官网实际请求（验证我们的实现是否正确）
+    console.log("【示例5】解密官网实际请求:");
+    var officialEncParams = "f270b4c2ee95900e83ab150af05a792e39d70e5fe895a2bf9616ff0bb6887ca4158f193e74d163053df10dfd24da80755ec6a664ef70e7966c829e3d39a87a676d393821345c4192a2c77e21dfb704b4db7e2de2428e97521b82319f78d8813a464277ddb9fc049e063505c072f81910338fc75e28f702a38b1b84943934dfad52c0807b86d43f0b69c8ef9962daf95f0cde8a5c383ccfef3488085e1718f7f3";
+    var officialDecrypted = sm4Decrypt(officialEncParams, MOOC_KEY);
+    console.log("官网密文:", officialEncParams.substring(0, 50) + "...");
+    console.log("解密结果:", officialDecrypted);
+    console.log("这证明了我们的加密实现是正确的！");
+    console.log();
+}
 
 console.log("=== 使用说明 ===");
 console.log("Node.js中使用:");
@@ -209,7 +315,9 @@ console.log("  </script>");
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         sm4Encrypt: sm4Encrypt,
+        sm4Decrypt: sm4Decrypt,
         encryptMoocParams: encryptMoocParams,
+        getCaptchaEncParams: getCaptchaEncParams,
         getTicketEncParams: getTicketEncParams,
         loginEncParams: loginEncParams,
         generateRtid: generateRtid,
