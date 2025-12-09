@@ -45,6 +45,10 @@ dependencies {
 
     // 配置属性注解处理器
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
+    // 加密库 - Bouncy Castle
+    implementation("org.bouncycastle:bcprov-jdk18on:1.78")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.78")
 }
 
 kotlin {
