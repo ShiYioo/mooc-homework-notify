@@ -51,7 +51,7 @@ dependencies {
     implementation("org.bouncycastle:bcpkix-jdk18on:1.78")
 
     // Playwright - 无头浏览器自动化
-    implementation("com.microsoft.playwright:playwright:1.40.0")
+    implementation("com.microsoft.playwright:playwright:1.50.0")
 
     // Kotlin协程
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
