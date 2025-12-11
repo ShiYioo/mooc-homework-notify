@@ -1,5 +1,6 @@
 package org.shiyi.moocworknodify.scheduler
 
+import org.shiyi.moocworknodify.config.PlaywrightInitializer
 import org.shiyi.moocworknodify.service.EmailNotificationService
 import org.shiyi.moocworknodify.service.HomeworkReminderService
 import org.slf4j.LoggerFactory
@@ -26,6 +27,12 @@ class HomeworkCheckScheduler(
      */
     @Scheduled(cron = "0 0 * * * ?")
     fun checkHomeworkDeadlines() {
+        // 确保Playwright已初始化
+        if (!PlaywrightInitializer.isInitialized()) {
+            logger.warn("Playwright尚未初始化完成，跳过本次作业检查")
+            return
+        }
+
         logger.info("=== 开始执行作业检查定时任务 ===")
 
         try {
@@ -51,6 +58,16 @@ class HomeworkCheckScheduler(
      */
     @Scheduled(initialDelay = 60000, fixedDelay = Long.MAX_VALUE)
     fun initialCheck() {
+        // 等待Playwright初始化完成（最多等待2分钟）
+        try {
+            logger.info("等待Playwright初始化完成...")
+            PlaywrightInitializer.waitForInitialization(120000)
+            logger.info("Playwright已就绪，执行首次作业检查")
+        } catch (e: Exception) {
+            logger.error("Playwright初始化超时，跳过首次作业检查", e)
+            return
+        }
+
         logger.info("=== 执行应用启动后的首次作业检查 ===")
         checkHomeworkDeadlines()
     }

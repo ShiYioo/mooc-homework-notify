@@ -2,9 +2,12 @@ package org.shiyi.moocworknodify.config
 
 import mu.KotlinLogging
 import org.shiyi.moocworknodify.service.MoocBrowserLoginService
+import org.springframework.boot.SpringApplication
 import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.ApplicationContext
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
+import kotlin.system.exitProcess
 
 /**
  * 应用启动监听器
@@ -16,7 +19,8 @@ import org.springframework.stereotype.Component
 @Component
 class ApplicationStartupListener(
     private val moocProperties: MoocProperties,
-    private val browserLoginService: MoocBrowserLoginService
+    private val browserLoginService: MoocBrowserLoginService,
+    private val applicationContext: ApplicationContext
 ) {
 
     private val logger = KotlinLogging.logger {}
@@ -30,6 +34,17 @@ class ApplicationStartupListener(
         logger.info { "=" .repeat(60) }
         logger.info { "应用启动完成，开始初始化..." }
         logger.info { "=" .repeat(60) }
+
+        // 等待Playwright初始化完成
+        try {
+            logger.info { "等待Playwright浏览器初始化完成..." }
+            PlaywrightInitializer.waitForInitialization(120000)
+            logger.info { "✅ Playwright浏览器已就绪" }
+        } catch (e: Exception) {
+            logger.error(e) { "❌ Playwright初始化失败，程序即将退出" }
+            shutdownApplication("Playwright初始化失败")
+            return
+        }
 
         // 如果启用了自动登录，立即执行登录
         if (moocProperties.login.enabled) {
@@ -82,9 +97,23 @@ class ApplicationStartupListener(
             logger.error { "错误原因: ${e.message}" }
             logger.error { "=" .repeat(60) }
 
-            // 登录失败不影响应用启动，继续运行
-            // 后续检测到Cookie无效时会再次尝试登录
+            // 登录失败，停止应用
+            shutdownApplication("自动登录失败: ${e.message}")
         }
+    }
+
+    /**
+     * 优雅关闭应用
+     */
+    private fun shutdownApplication(reason: String) {
+        logger.error { "=" .repeat(60) }
+        logger.error { "❌ 应用启动失败: $reason" }
+        logger.error { "程序即将退出..." }
+        logger.error { "=" .repeat(60) }
+
+        // 使用SpringApplication优雅关闭
+        SpringApplication.exit(applicationContext, { 1 })
+        exitProcess(1)
     }
 }
 
