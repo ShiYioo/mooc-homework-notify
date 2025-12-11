@@ -49,6 +49,16 @@ dependencies {
     // 加密库 - Bouncy Castle
     implementation("org.bouncycastle:bcprov-jdk18on:1.78")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.78")
+
+    // Playwright - 无头浏览器自动化
+    implementation("com.microsoft.playwright:playwright:1.40.0")
+
+    // Kotlin协程
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
+
+    // 日志增强
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 }
 
 kotlin {

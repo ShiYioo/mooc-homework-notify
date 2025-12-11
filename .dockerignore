@@ -1,31 +1,62 @@
 # Git
 .git
 .gitignore
+.gitattributes
 
 # IDE
 .idea
-*.iml
 .vscode
+*.iml
+*.ipr
+*.iws
 
-# Gradle
-.gradle
+# Build
 build/
-!build/libs/
-!gradle/wrapper/gradle-wrapper.jar
+!build/libs/*.jar
+target/
+.gradle/
+gradle/
+gradlew
+gradlew.bat
 
-# 环境配置文件（包含敏感信息）
-.env
-src/main/resources/application.yaml
-
-# 日志
+# Logs
 logs/
 *.log
 
-# 文档
-*.md
-LICENSE
+# 数据文件
+data/
+*.json
 
-# 其他
+# 测试
+src/test/
+*.test.kt
+
+# 文档和说明
+README.md
+*.md
+docs/
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*~
+
+# macOS
 .DS_Store
-Thumbs.db
+
+# HTML文件（登录分析用）
+*.html
+*_files/
+
+# Node.js（如果有前端）
+node_modules/
+package-lock.json
+
+# 配置文件（避免泄露敏感信息）
+application.yaml
+application-*.yaml
+!application-example.yaml
 

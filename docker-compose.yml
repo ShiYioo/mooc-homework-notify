@@ -2,32 +2,76 @@ version: '3.8'
 
 services:
   mooc-work-nodify:
-    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/azul/zulu-openjdk:21-linuxarm64
+    # 使用带有Playwright支持的JRE基础镜像
+    # 注意：不是Alpine版本，因为Playwright需要完整的系统库
+    image: eclipse-temurin:21-jre
+
     container_name: mooc-work-nodify
     restart: unless-stopped
     working_dir: /app
 
-    # 启动命令
-    command: ["java", "-Xms128m", "-Xmx512m", "-XX:+UseContainerSupport", "-jar", "/app/app.jar"]
+    # 容器启动前安装Playwright依赖
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        echo "正在安装Playwright依赖..."
+        apt-get update && apt-get install -y \
+          libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
+          libcups2 libdrm2 libdbus-1-3 libxkbcommon0 \
+          libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
+          libgbm1 libasound2 libpango-1.0-0 libcairo2 \
+          fonts-liberation fonts-noto-cjk ca-certificates tzdata \
+          && rm -rf /var/lib/apt/lists/*
+        
+        echo "设置时区..."
+        ln -snf /usr/share/zoneinfo/$$TZ /etc/localtime
+        echo $$TZ > /etc/timezone
+        
+        echo "启动应用..."
+        java $$JAVA_OPTS -jar /app/app.jar
 
-    # 挂载JAR包和配置文件
+    # 挂载JAR包、配置文件和数据目录
     volumes:
       # 挂载JAR包（必需）
+      # 先执行: ./gradlew clean build -x test
       - ./build/libs/mooc-work-nodify-lastest.jar:/app/app.jar:ro
 
       # 挂载配置文件（必需，与JAR包同目录）
-      - ./src/main/resources/application.yaml:/app/application.yaml:ro
+      # 先执行: cp src/main/resources/application-example.yaml application.yaml
+      # 然后编辑 application.yaml 填写你的配置
+      - ./application.yaml:/app/application.yaml:ro
 
-      # 日志持久化
+      # 数据持久化（Cookie缓存、日志等）
+      - ./data:/app/data
       - ./logs:/app/logs
+
+      # Playwright浏览器缓存（可选，用于加速启动）
+      - playwright-cache:/ms-playwright
 
     # 环境变量配置
     environment:
-      # 指定配置文件位置（与JAR包同目录）
+      # 指定Spring配置文件位置
       - SPRING_CONFIG_LOCATION=file:/app/application.yaml
+
+      # JVM参数
+      - JAVA_OPTS=-Xms256m -Xmx1024m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
 
       # 时区配置
       - TZ=Asia/Shanghai
+
+      # Playwright配置
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+    # 资源限制（Playwright需要较多内存）
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
 
     # 网络配置
     networks:
@@ -40,7 +84,21 @@ services:
         max-size: "10m"
         max-file: "3"
 
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "test", "-f", "/app/logs/mooc-work-notify.log"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
 # 网络
 networks:
   mooc-network:
     driver: bridge
+
+# 数据卷
+volumes:
+  playwright-cache:
+    driver: local
+

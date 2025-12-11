@@ -22,19 +22,58 @@ spring:
 
 # MOOC平台配置
 mooc:
-  # Cookie信息（从浏览器开发者工具中获取，登录MOOC后复制完整Cookie）
-  # 获取方法：
+  # ==================== 登录方式选择 ====================
+  # 💡 推荐使用「方式二：自动登录」，无需手动配置Cookie
+
+  # 方式一：手动配置Cookie（不推荐，需要每10天手动更新）
+  # 方式二：自动登录获取Cookie（推荐，全自动维护）
+
+  # Cookie信息（仅在未启用自动登录时需要配置）
+  # ⚠️ 如果 login.enabled=true，此字段留空即可，系统会自动获取
+  # 手动获取方法：
   # 1. 登录 https://www.icourse163.org/
   # 2. 按F12打开开发者工具
   # 3. 切换到Network标签
   # 4. 刷新页面，选择任意请求
   # 5. 在Request Headers中找到Cookie字段，复制完整值
-  cookie: "NTESSTUDYSI=your_csrf_key; EDUWEBDEVICE=your_device_id; STUDY_SESS=your_session; ..."
+  cookie: ""  # 启用自动登录时留空
 
   # CSRF密钥（从Cookie中的NTESSTUDYSI字段获取）
-  # 例如：Cookie中有 "NTESSTUDYSI=a76b9ae558784a048a62ac1d7f2cf2b4"
-  # 则csrf-key为："a76b9ae558784a048a62ac1d7f2cf2b4"
-  csrf-key: "your_csrf_key"
+  # ⚠️ 如果 login.enabled=true，此字段留空即可，系统会自动提取
+  csrf-key: ""  # 启用自动登录时留空
+
+  # ==================== 自动登录配置（强烈推荐） ====================
+  login:
+    # 是否启用无头浏览器自动登录
+    # ✅ true: 使用邮箱密码自动登录，Cookie永久自动维护（推荐）
+    # ❌ false: 需要手动配置上面的Cookie，每10天更新一次
+    enabled: true
+
+    # MOOC登录邮箱
+    email: "your-email@163.com"
+
+    # MOOC登录密码（明文，请妥善保管配置文件）
+    password: "your-password"
+
+    # Cookie缓存文件路径（自动登录后会保存Cookie，避免频繁登录）
+    # 注意：Cookie会一直使用，直到MOOC API返回为空时才会自动重新登录
+    # 默认保存在JAR包同目录的data文件夹下
+    cookie-cache-file: "./data/mooc_cookies.json"
+
+
+    # 浏览器配置
+    browser:
+      # 是否启用无头模式（后台运行，不显示浏览器窗口）
+      # 开发调试时可设置为false查看登录过程
+      headless: true
+
+      # 浏览器操作超时时间（毫秒）
+      timeout: 30000
+
+      # 登录页面URL（通常不需要修改）
+      login-url: "https://www.icourse163.org/member/login.htm"
+
+  # ==================== 课程监控配置 ====================
 
   # 课程学期ID列表（支持监控多个课程）
   # 获取方法：
@@ -57,10 +96,6 @@ mooc:
     # - 72   # 可以添加更多提醒时间点，如截止前3天
     # - 2    # 截止前2小时
 
-  # 管理员邮箱（用于接收系统通知，如Cookie过期提醒）
-  # 当系统检测到Cookie过期时，会发送邮件通知管理员更换Cookie
-  # 此通知对于每次Cookie过期只会发送一次，避免重复打扰
-  admin-email: "admin@example.com"
 
 # 邮件通知配置
 notification:
