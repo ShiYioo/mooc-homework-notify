@@ -321,15 +321,6 @@ class MoocBrowserLoginService(
             logger.error { "遍历iframe失败: ${e.message}" }
         }
 
-        // 保存截图用于调试
-        try {
-            val screenshotPath = "/tmp/mooc-login-debug-${System.currentTimeMillis()}.png"
-            page.screenshot(Page.ScreenshotOptions().setPath(java.nio.file.Paths.get(screenshotPath)))
-            logger.error { "⚠️ 未找到登录iframe，已保存页面截图到: $screenshotPath" }
-        } catch (ignored: Exception) {
-            logger.error { "保存调试截图失败: ${ignored.message}" }
-        }
-
         throw RuntimeException("未找到登录iframe。请检查: 1)登录URL是否正确 2)网络是否正常 3)查看截图: /tmp/mooc-login-debug-*.png")
     }
 
