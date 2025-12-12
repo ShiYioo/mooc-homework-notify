@@ -45,13 +45,14 @@ class MoocBrowserLoginService(
         require(email.isNotBlank()) { "登录邮箱不能为空，请在配置文件中设置 mooc.login.email" }
         require(password.isNotBlank()) { "登录密码不能为空，请在配置文件中设置 mooc.login.password" }
 
-        logger.info { "开始使用无头浏览器登录MOOC，邮箱: $email" }
+        logger.info { "开始使用${if (moocProperties.login.browser.headless) "无头" else "有头"}浏览器登录MOOC，邮箱: $email" }
 
         val playwright = Playwright.create()
 
         try {
 
             val launchOptions = BrowserType.LaunchOptions()
+                .setHeadless(moocProperties.login.browser.headless)
                 .setTimeout(60000.0)  // 增加启动超时到60秒
 
             val browser = playwright.chromium().launch(launchOptions)
