@@ -43,7 +43,9 @@
 
 ## 🚀 快速开始（5分钟部署）
 
-### 方式一：Docker部署（推荐）
+> ⚠️ **重要提示**：由于Playwright在Docker环境下的Cookie获取限制，**自动登录功能目前仅在Windows/macOS物理机环境下稳定运行**。Docker部署方式存在Cookie不完整问题，建议在物理机上运行。详见[故障排查](#故障排查)部分。
+
+### 方式一：Docker部署（存在已知限制）
 
 #### 1. 环境要求
 - Docker 20.10+
@@ -105,7 +107,7 @@ docker-compose up -d
 docker-compose logs -f
 ```
 
-### 方式二：本地运行
+### 方式二：本地运行（推荐）
 
 #### 1. 环境要求
 - JDK 21+
@@ -297,13 +299,22 @@ mooc-work-nodify/
 - 原因：网络慢或页面加载慢
 - 解决：增加 `mooc.login.browser.timeout` 配置
 
-**⚠️ 问题3：Docker和Windows环境获取的Cookie不一致**
-- **现象**：在Windows上运行正常，但在Docker容器中获取的Cookie不完整（缺少NTES_SESS、STUDY_SESS、STUDY_INFO等关键Cookie）
-- **原因**：可能是由于Docker环境中的浏览器设置、网络环境或系统依赖差异导致Cookie无法正确设置
-- **当前状态**：此功能目前仅在Windows环境下测试通过并稳定运行，Docker环境下可能存在问题
+**⚠️ 问题3：Docker环境下获取的Cookie不完整（已知限制）**
+- **现象**：在Windows上运行正常，但在基于官方 `mcr.microsoft.com/playwright/java` 镜像的Docker容器中获取的Cookie不完整（缺少NTES_SESS、STUDY_SESS、STUDY_INFO等关键Cookie）
+- **根本原因**：
+  - Playwright在Docker环境下使用的Chromium浏览器可能对第三方Cookie的处理策略与Windows环境不同
+  - Docker容器中的Chromium可能因网络隔离或系统环境差异，导致部分Cookie无法正确设置
+  - MOOC网站的Cookie设置机制依赖于特定的浏览器特性，在容器化环境中可能无法完全模拟
+- **当前状态**：
+  - ✅ **Windows环境**：测试通过，稳定运行
+  - ⚠️ **Docker环境**：存在Cookie不完整问题，导致自动登录功能受限
 - **临时解决方案**：
-  1. Windows部署
-- **后续计划**：我们正在调查此问题的根本原因，欢迎有经验的开发者提供解决方案
+  1. **推荐**：在Windows物理机上直接运行（使用JDK 21+）
+  2. 不推荐：在Docker环境中运行（可能需要手动配置Cookie）
+- **技术限制说明**：
+  - 这是Playwright + Docker + 特定网站Cookie机制的组合限制
+  - 并非代码逻辑错误，而是运行环境的差异导致
+  - 欢迎有Docker自动化经验的开发者提供解决方案
 
 ### 作业检查失败
 
