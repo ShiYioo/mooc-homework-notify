@@ -297,9 +297,13 @@ mooc-work-nodify/
 - 原因：网络慢或页面加载慢
 - 解决：增加 `mooc.login.browser.timeout` 配置
 
-**问题3：Docker容器中浏览器启动失败**
-- 原因：缺少系统依赖
-- 解决：检查Dockerfile中的依赖是否完整
+**⚠️ 问题3：Docker和Windows环境获取的Cookie不一致**
+- **现象**：在Windows上运行正常，但在Docker容器中获取的Cookie不完整（缺少NTES_SESS、STUDY_SESS、STUDY_INFO等关键Cookie）
+- **原因**：可能是由于Docker环境中的浏览器设置、网络环境或系统依赖差异导致Cookie无法正确设置
+- **当前状态**：此功能目前仅在Windows环境下测试通过并稳定运行，Docker环境下可能存在问题
+- **临时解决方案**：
+  1. Windows部署
+- **后续计划**：我们正在调查此问题的根本原因，欢迎有经验的开发者提供解决方案
 
 ### 作业检查失败
 
