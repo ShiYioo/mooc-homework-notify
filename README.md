@@ -205,32 +205,26 @@ docker exec -it mooc-work-nodify sh
 ./deploy.sh clean    # 清理数据
 ```
 
-## 📂 目录结构
+## 📂 代码结构
 
 ```
-mooc-work-nodify/
-├── src/
-│   ├── main/
-│   │   ├── kotlin/
-│   │   │   └── org/shiyi/moocworknodify/
-│   │   │       ├── config/          # 配置类
-│   │   │       ├── model/           # 数据模型
-│   │   │       ├── scheduler/       # 定时任务
-│   │   │       └── service/         # 业务服务
-│   │   │           ├── MoocBrowserLoginService.kt  # 无头浏览器登录
-│   │   │           ├── MoocApiService.kt          # MOOC API
-│   │   │           ├── HomeworkReminderService.kt # 作业提醒
-│   │   │           └── EmailNotificationService.kt # 邮件发送
-│   │   └── resources/
-│   │       ├── application.yaml         # 配置文件（需创建）
-│   │       └── application-example.yaml # 配置示例
-│   └── test/
-├── data/                 # 数据目录（Cookie缓存等）
-├── logs/                 # 日志目录
-├── Dockerfile            # Docker镜像定义
-├── docker-compose.yml    # Docker编排配置
-├── deploy.sh             # 部署脚本
-└── README.md            # 本文件
+src/main/kotlin/org/shiyi/moocworknodify/
+├── config/                          # 配置类
+│   ├── AppConfig.kt                # 应用配置
+│   ├── ApplicationStartupListener.kt # 启动监听器
+│   └── SchedulerConfig.kt          # 定时任务配置
+├── model/                           # 数据模型
+│   ├── CourseInfo.kt               # 课程信息
+│   ├── Homework.kt                 # 作业模型
+│   └── MoocCookie.kt               # Cookie模型
+├── scheduler/                       # 定时任务
+│   └── HomeworkCheckScheduler.kt   # 作业检查调度器
+├── service/                         # 业务服务
+│   ├── MoocBrowserLoginService.kt  # 🌟 无头浏览器自动登录
+│   ├── MoocApiService.kt           # MOOC API调用
+│   ├── HomeworkReminderService.kt  # 作业提醒服务
+│   └── EmailNotificationService.kt # 邮件通知服务
+└── MoocWorkNodifyApplication.kt    # 应用入口
 ```
 
 ## ⚙️ 工作原理
